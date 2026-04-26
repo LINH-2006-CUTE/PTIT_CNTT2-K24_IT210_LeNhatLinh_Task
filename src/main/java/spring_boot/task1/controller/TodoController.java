@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import spring_boot.task1.model.entity.Todo;
 import spring_boot.task1.repository.TodoRepository;
 
@@ -37,10 +38,28 @@ public class TodoController {
         return "redirect:/todos/";
     }
 
-    // Xóa
+    // sửa
+    @GetMapping("/edit/{id}")
+    public String edit(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        return todoRepository.findById(id).map(todo -> {
+            model.addAttribute("todo", todo);
+            model.addAttribute("listTodo", todoRepository.findAll());
+            return "todo";
+        }).orElseGet(() -> {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy ID công việc");
+            return "redirect:/todos/";
+        });
+    }
+
+    // xóa
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        todoRepository.deleteById(id);
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        if (todoRepository.existsById(id)) {
+            todoRepository.deleteById(id);
+            redirectAttributes.addFlashAttribute("message", "Xóa thành công");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Công việc không tồn tại");
+        }
         return "redirect:/todos/";
     }
 }
